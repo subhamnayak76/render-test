@@ -43,6 +43,37 @@ app.get('/api/persons/:id', (req, res, next) => {
             next(error); // Pass the error to the error handling middleware
         });
 });
+app.delete('/api/persons/:id', (req, res, next) => {
+    Person.findByIdAndDelete(req.params.id)
+        .then((result) => {
+            res.status(204).json({message: 'Person deleted',
+                'deletedPerson': result
+            });
+        })
+        .catch(error => {
+            console.error('Error deleting person:', error);
+            next(error); 
+        });
+})
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body;
+
+    const person = {
+        name: body.name,
+        number: body.number,
+    }
+
+    Person.findByIdAndUpdate(req.params.id
+        , person
+        , { new: true, })
+        .then(updatedPerson => {
+            res.json(updatedPerson);
+        })
+        .catch(error => {
+            console.error('Error updating person:', error);
+            next(error); 
+        });
+    })       
 app.post('/api/persons', (req, res, next) => {
     const body = req.body;
 
@@ -68,12 +99,18 @@ app.post('/api/persons', (req, res, next) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Error handling middleware:', err.stack);
-    res.status(500).send('Internal Server Error');
-});
+const errorHandler = (error, req, res, next) => {
+    console.error('Error:', error.message);
 
-const PORT = process.env.PORT || 3001; // Ensure a default port is set
+    if (error.name === 'CastError') {
+        return res.status(400).send({ error: 'malformatted id' });
+    }
+
+    next(error);
+};
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 3001; 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
