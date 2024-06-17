@@ -43,29 +43,27 @@ app.get('/api/persons/:id', (req, res, next) => {
             next(error); // Pass the error to the error handling middleware
         });
 });
+
 app.delete('/api/persons/:id', (req, res, next) => {
     Person.findByIdAndDelete(req.params.id)
         .then((result) => {
-            res.status(204).json({message: 'Person deleted',
-                'deletedPerson': result
-            });
+            res.json({ message: 'Person deleted', 'deletedPerson': result });
         })
         .catch(error => {
             console.error('Error deleting person:', error);
             next(error); 
         });
-})
+});
+
 app.put('/api/persons/:id', (req, res, next) => {
     const body = req.body;
 
     const person = {
         name: body.name,
         number: body.number,
-    }
+    };
 
-    Person.findByIdAndUpdate(req.params.id
-        , person
-        , { new: true, })
+    Person.findByIdAndUpdate(req.params.id, person, { new: true })
         .then(updatedPerson => {
             res.json(updatedPerson);
         })
@@ -73,27 +71,39 @@ app.put('/api/persons/:id', (req, res, next) => {
             console.error('Error updating person:', error);
             next(error); 
         });
-    })       
+});
+
 app.post('/api/persons', (req, res, next) => {
     const body = req.body;
 
     if (!body.name || !body.number) {
-        return res.status(400).json({ 
-            error: 'name or number is missing' 
-        });
+        return res.status(400).json({ error: 'name or number is missing' });
     }
 
-    const person = new Person({
-        name: body.name,
-        number: body.number,
-    });
+    Person.findOne({ name: body.name })
+        .then(existingPerson => {
+            if (existingPerson) {
+                // Person already exists, return error
+                return res.status(400).json({ error: 'name must be unique' });
+            } else {
+                // Person does not exist, create a new entry
+                const person = new Person({
+                    name: body.name,
+                    number: body.number,
+                });
 
-    person.save()
-        .then(savedPerson => {
-            res.json(savedPerson);
+                person.save()
+                    .then(savedPerson => {
+                        res.json(savedPerson);
+                    })
+                    .catch(error => {
+                        console.error('Error saving person:', error);
+                        next(error); // Pass the error to the error handling middleware
+                    });
+            }
         })
         .catch(error => {
-            console.error('Error saving person:', error);
+            console.error('Error checking for existing person:', error);
             next(error); // Pass the error to the error handling middleware
         });
 });
@@ -110,7 +120,7 @@ const errorHandler = (error, req, res, next) => {
 };
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3001; 
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
