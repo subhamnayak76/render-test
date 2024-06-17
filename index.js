@@ -3,7 +3,7 @@ const express = require('express');
 const morgan = require('morgan');
 const morganBody = require('morgan-body');
 const cors = require('cors');
-const Person = require('./mongo'); // Updated to match the correct model name
+const Person = require('./mongo'); // Correct model name
 
 const app = express();
 
@@ -18,16 +18,18 @@ app.use(morgan('tiny'));
 // Use morgan-body for logging request bodies
 morganBody(app);
 
-app.get('/api/persons', (req, res) => {
-    Person.find({}).then(result => {
-        res.json(result);
-    }).catch(error => {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-    });
+app.get('/api/persons', (req, res, next) => {
+    Person.find({})
+        .then(result => {
+            res.json(result);
+        })
+        .catch(error => {
+            console.error('Error fetching persons:', error);
+            next(error); // Pass the error to the error handling middleware
+        });
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body;
 
     if (!body.name || !body.number) {
@@ -41,21 +43,23 @@ app.post('/api/persons', (req, res) => {
         number: body.number,
     });
 
-    person.save().then(savedPerson => {
-        res.json(savedPerson);
-    }).catch(error => {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-    });
+    person.save()
+        .then(savedPerson => {
+            res.json(savedPerson);
+        })
+        .catch(error => {
+            console.error('Error saving person:', error);
+            next(error); // Pass the error to the error handling middleware
+        });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+    console.error('Error handling middleware:', err.stack);
+    res.status(500).send('Internal Server Error');
 });
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001; // Ensure a default port is set
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
