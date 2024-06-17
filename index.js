@@ -29,6 +29,20 @@ app.get('/api/persons', (req, res, next) => {
         });
 });
 
+app.get('/api/persons/:id', (req, res, next) => {
+    Person.findById(req.params.id)
+        .then(result => {
+            if (result) {
+                res.json(result);
+            } else {
+                res.status(404).end();
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching person:', error);
+            next(error); // Pass the error to the error handling middleware
+        });
+});
 app.post('/api/persons', (req, res, next) => {
     const body = req.body;
 
