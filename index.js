@@ -2,12 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const morganBody = require('morgan-body');
-const person = require('./mongo');
-const app = express();
-const cors = require('cors')
+const cors = require('cors');
+const Person = require('./mongo'); // Updated to match the correct model name
 
-app.use(cors())
-app.use(express.static('dist'))
+const app = express();
+
+app.use(cors());
+app.use(express.static('dist'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -17,69 +18,36 @@ app.use(morgan('tiny'));
 // Use morgan-body for logging request bodies
 morganBody(app);
 
-// let phonebook = [
-//     { 
-//       "id": 1,
-//       "name": "Arto Hellas", 
-//       "number": "040-123456"
-//     },
-//     { 
-//       "id": 2,
-//       "name": "Ada Lovelace", 
-//       "number": "39-44-5323523"
-//     },
-//     { 
-//       "id": 3,
-//       "name": "Dan Abramov", 
-//       "number": "12-43-234345"
-//     },
-    
-// ];
-
-// const currentTime = new Date().toLocaleString();
-// const maxlength = phonebook.length;
-
 app.get('/api/persons', (req, res) => {
-     person.find({}).then(result => {
+    Person.find({}).then(result => {
         res.json(result);
-    })
+    }).catch(error => {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    });
 });
-
-// app.get('/info', (req, res) => {
-//     res.send(`
-//         <h1>Phonebook has ${maxlength} entries</h1>
-//         <br/>
-//         <h1>${currentTime}</h1>
-//     `);
-// });
 
 app.post('/api/persons', (req, res) => {
     const body = req.body;
-     // Respond with the newly added person
-        if (!body.name || !body.number) {
-            return res.status(400).json({ 
-                error: 'name or number is missing' 
-            });
-        }
-        const person = new person({
-            name: body.name,
-            number: body.number,
-        });
-        person.save().then(savedPerson => {
-            res.json(savedPerson);
-        });
-});
 
-// app.delete('/api/persons/:id', (req, res) => {
-//     const id = Number(req.params.id);
-//     const index = phonebook.findIndex(ph => ph.id === id);
-//     if (index !== -1) {
-//         phonebook = phonebook.filter(ph => ph.id !== id);
-//         res.json(phonebook);
-//     } else {
-//         res.status(404).send("This id is not present in the phonebook");
-//     }
-// });
+    if (!body.name || !body.number) {
+        return res.status(400).json({ 
+            error: 'name or number is missing' 
+        });
+    }
+
+    const person = new Person({
+        name: body.name,
+        number: body.number,
+    });
+
+    person.save().then(savedPerson => {
+        res.json(savedPerson);
+    }).catch(error => {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -87,7 +55,7 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something broke!');
 });
 
-const PORT = process.env.PORT 
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+    console.log(`Server running on port ${PORT}`);
+});
