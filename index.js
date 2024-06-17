@@ -36,8 +36,8 @@ morganBody(app);
     
 // ];
 
-const currentTime = new Date().toLocaleString();
-const maxlength = phonebook.length;
+// const currentTime = new Date().toLocaleString();
+// const maxlength = phonebook.length;
 
 app.get('/api/persons', (req, res) => {
      person.find({}).then(result => {
@@ -45,13 +45,13 @@ app.get('/api/persons', (req, res) => {
     })
 });
 
-app.get('/info', (req, res) => {
-    res.send(`
-        <h1>Phonebook has ${maxlength} entries</h1>
-        <br/>
-        <h1>${currentTime}</h1>
-    `);
-});
+// app.get('/info', (req, res) => {
+//     res.send(`
+//         <h1>Phonebook has ${maxlength} entries</h1>
+//         <br/>
+//         <h1>${currentTime}</h1>
+//     `);
+// });
 
 app.post('/api/persons', (req, res) => {
     const body = req.body;
@@ -70,16 +70,16 @@ app.post('/api/persons', (req, res) => {
         });
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const index = phonebook.findIndex(ph => ph.id === id);
-    if (index !== -1) {
-        phonebook = phonebook.filter(ph => ph.id !== id);
-        res.json(phonebook);
-    } else {
-        res.status(404).send("This id is not present in the phonebook");
-    }
-});
+// app.delete('/api/persons/:id', (req, res) => {
+//     const id = Number(req.params.id);
+//     const index = phonebook.findIndex(ph => ph.id === id);
+//     if (index !== -1) {
+//         phonebook = phonebook.filter(ph => ph.id !== id);
+//         res.json(phonebook);
+//     } else {
+//         res.status(404).send("This id is not present in the phonebook");
+//     }
+// });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
