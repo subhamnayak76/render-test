@@ -12,17 +12,24 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
     console.error('error connecting to MongoDB:', error.message);
   });
 
-const phonebookSchema = new mongoose.Schema({
-    name: {
-      String,
-      minlength: 3,
-    },
-    number: {
-      String,
-      minlength: 8,
-    },
-});
+  const phoneRegex = /^(\d{2,3})-(\d{5,})$/;
 
+  const phonebookSchema = new mongoose.Schema({
+      name: {
+          type: String,
+          required: true,
+      },
+      number: {
+          type: String,
+          required: true,
+          validate: {
+              validator: function(v) {
+                  return phoneRegex.test(v);
+              },
+              message: props => `${props.value} is not a valid phone number!`
+          }
+      },
+  });
 const Person = mongoose.model('Person', phonebookSchema);
 
 module.exports = Person;
