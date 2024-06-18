@@ -13,8 +13,14 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
   });
 
 const phonebookSchema = new mongoose.Schema({
-    name: String,
-    number: String
+    name: {
+      String,
+      minlength: 3,
+    },
+    number: {
+      String,
+      minlength: 8,
+    },
 });
 
 const Person = mongoose.model('Person', phonebookSchema);
